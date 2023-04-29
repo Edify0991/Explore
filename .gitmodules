@@ -1,0 +1,3 @@
+[submodule "str2dots"]
+	path = str2dots
+	url = https://github.com/brightlicong/findcounters

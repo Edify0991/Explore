@@ -2,9 +2,11 @@
 # 直方图均衡化：遍历图像每个像素的灰度，算出每个灰度的概率（n/MN--n是每个灰度的个数，MN是像素总数），用L-1乘以所得概率得到新的灰度
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
-img = cv2.imread('/home/edify/Code/Machine_Leaning/DLAM.jpg')
+img = cv2.imread('/home/edify/Code/Machine_Leaning/DLAM2.jpeg')
 img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+# img_gray = cv2.GaussianBlur(img_gray, (5, 5), 0)  # 5x5
 
 
 def pix_gray(img_gray):  # 直方图统计
@@ -14,8 +16,8 @@ def pix_gray(img_gray):  # 直方图统计
     gray_level = np.zeros(256)
     gray_level2 = np.zeros(256)
 
-    for i in range(1, h - 1):
-        for j in range(1, w - 1):
+    for i in range(h):
+        for j in range(w):
             gray_level[img_gray[i, j]] += 1  # 统计灰度级为img_gray[i,j]的个数
 
     for i in range(1, 256):
@@ -37,6 +39,11 @@ def hist_gray(img_gary):  # 直方图均衡化
 
 cv2.imshow('imput', img_gray)
 out_img = hist_gray(img_gray)
+out_img2 = cv2.equalizeHist(img_gray)
+out_img2 = cv2.cvtColor(out_img2, cv2.COLOR_BGR2RGB)
+# plt.imshow(out_img2)  # opencv和matplot不能同时使用
+# plt.hist(out_img.ravel(), 256)
+# plt.show()
 cv2.imshow('output', out_img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()

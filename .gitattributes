@@ -1,0 +1,5 @@
+*.pdf filter=lfs diff=lfs merge=lfs -text
+big_data filter=lfs diff=lfs merge=lfs -text
+Machine_Leaning filter=lfs diff=lfs merge=lfs -text
+Stake filter=lfs diff=lfs merge=lfs -text
+str2dots filter=lfs diff=lfs merge=lfs -text

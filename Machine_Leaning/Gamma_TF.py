@@ -43,7 +43,7 @@ def update_gamma(val):  # 随着滑块变化更新的gamma值进行更新gamma�
 # 在每一个类或者函数前要留两行空行，在注释的#后面要有一个空格
 if __name__ == '__main__':
     set_chinese()
-    a = cv2.imread("/home/edify/Code/Machine_Leaning/DLAM.jpg", cv2.IMREAD_UNCHANGED)
+    a = cv2.imread("/home/edify/Code/Machine_Leaning/DLAM1.jpg", cv2.IMREAD_UNCHANGED)
     image1 = cv2.split(a)[0]  # 蓝
     image2 = cv2.split(a)[1]  # 绿
     image3 = cv2.split(a)[2]  # 红

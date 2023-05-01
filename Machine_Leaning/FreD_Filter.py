@@ -1,9 +1,11 @@
-# 参考https://blog.csdn.net/qq_38463737/article/details/118682500
+# 参考1：https://blog.csdn.net/qq_38463737/article/details/118682500
+# 参考2：https://zhuanlan.zhihu.com/p/387352802
 import os
 
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import math
 
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
@@ -87,6 +89,7 @@ def ButterworthLowPassFilter(image, d, n, s1):
 def ButterworthHighPassFilter(image, d, n, s1):
     """
     Butterworth高通滤波器
+    d : 设置半径
     """
     f = np.fft.fft2(image)
     fshift = np.fft.fftshift(f)
@@ -104,24 +107,24 @@ def ButterworthHighPassFilter(image, d, n, s1):
                     return dis
 
                 dis = cal_distance(center_point, (i, j))
-                transform_matrix[i, j] = 1 / (1 + (d / dis) ** (2 * n))
+                transform_matrix[i, j] = 1 / (1 + (math.sqrt(2) - 1) * (d / dis) ** (2 * n))
         return transform_matrix
 
 
     d_matrix = make_transform_matrix(d)
-    new_img = np.abs(np.fft.ifft2(np.fft.ifftshift(fshift * d_matrix)))
+    new_img = np.abs(np.fft.ifft2(np.fft.ifftshift(fshift * d_matrix))) # 将图移回去
     return new_img
 
 
-# 高斯高通滤波器
-def GaussianHighPassFilter(image, d, n, s1):
+# 高斯低通滤波器
+def GaussianLowPassFilter(image, sigma, s1):
     """
-    Butterworth高通滤波器
+    Gaussian低通滤波器
     """
     f = np.fft.fft2(image)
     fshift = np.fft.fftshift(f)
 
-    def make_transform_matrix(d):
+    def make_transform_matrix():
         transform_matrix = np.zeros(image.shape)
         center_point = tuple(map(lambda x: (x - 1) / 2, s1.shape))
         for i in range(transform_matrix.shape[0]):
@@ -132,13 +135,40 @@ def GaussianHighPassFilter(image, d, n, s1):
 
                     dis = sqrt((pa[0] - pb[0]) ** 2 + (pa[1] - pb[1]) ** 2)
                     return dis
-
                 dis = cal_distance(center_point, (i, j))
-                transform_matrix[i, j] = np.exp(-(dis ** 2) / (2 * ))
+                transform_matrix[i, j] = np.exp(- (dis ** 2) / (2 * (sigma ** 2)))
         return transform_matrix
 
 
-    d_matrix = make_transform_matrix(d)
+    d_matrix = make_transform_matrix()
+    new_img = np.abs(np.fft.ifft2(np.fft.ifftshift(fshift * d_matrix)))
+    return new_img
+
+# 高斯高通滤波器
+def GaussianHighPassFilter(image, sigma, s1):
+    """
+    Gaussian高通滤波器
+    """
+    f = np.fft.fft2(image)
+    fshift = np.fft.fftshift(f)
+
+    def make_transform_matrix():
+        transform_matrix = np.zeros(image.shape)
+        center_point = tuple(map(lambda x: (x - 1) / 2, s1.shape))
+        for i in range(transform_matrix.shape[0]):
+            for j in range(transform_matrix.shape[1]):
+
+                def cal_distance(pa, pb):
+                    from math import sqrt
+
+                    dis = sqrt((pa[0] - pb[0]) ** 2 + (pa[1] - pb[1]) ** 2)
+                    return dis
+                dis = cal_distance(center_point, (i, j))
+                transform_matrix[i, j] = 1 - np.exp(- (dis ** 2) / (2 * (sigma ** 2)))
+        return transform_matrix
+
+
+    d_matrix = make_transform_matrix()
     new_img = np.abs(np.fft.ifft2(np.fft.ifftshift(fshift * d_matrix)))
     return new_img
 
@@ -201,55 +231,72 @@ def put(path):
     s1 = np.log(np.abs(fshift))
 
     # 用以中文显示
-    plt.subplot(331)
+    plt.subplot(4, 3, 1)
     plt.axis('off')
     plt.title('原始图像')
     plt.imshow(img, cmap='gray')
 
-    plt.subplot(332)
+    plt.subplot(4, 3, 2)
     plt.axis('off')
     plt.title('理想低通20')
     res1 = LowPassFilter(img)
     plt.imshow(res1, cmap='gray')
 
-    plt.subplot(333)
+    plt.subplot(4, 3, 3)
     plt.axis('off')
     plt.title('理想高通2')
     res2 = HighPassFilter(img)
     plt.imshow(res2, cmap='gray')
 
-    plt.subplot(334)
+    plt.subplot(4, 3, 4)
     plt.axis('off')
     plt.title('原始图像')
     plt.imshow(img, cmap='gray')
 
-    plt.subplot(335)
+    plt.subplot(4, 3, 5)
     plt.axis('off')
     plt.title('巴特沃斯低通20')
     butter_10_1 = ButterworthLowPassFilter(img, 20, 1, s1)
     plt.imshow(butter_10_1, cmap='gray')
 
-    plt.subplot(336)
+    plt.subplot(4, 3, 6)
     plt.axis('off')
     plt.title('巴特沃斯高通2')
     butter_2_1_1 = ButterworthHighPassFilter(img, 2, 1, s1)
     plt.imshow(butter_2_1_1, cmap='gray')
 
-    plt.subplot(337)
+    plt.subplot(4, 3, 7)
     plt.axis('off')
     plt.title('指数原始图像')
     plt.imshow(img, cmap='gray')
 
-    plt.subplot(338)
+    plt.subplot(4, 3, 8)
     plt.axis('off')
     plt.title('指数低通图像20')
     img_back = filter(img, 30, type='lp')
     plt.imshow(img_back, cmap='gray')
 
-    plt.subplot(339)
+    plt.subplot(4, 3, 9)
     plt.axis('off')
     plt.title('指数高通图像2')
     img_back = filter(img, 2, type='hp')
+    plt.imshow(img_back, cmap='gray')
+
+    plt.subplot(4, 3, 10)
+    plt.axis('off')
+    plt.title('高斯原始图像')
+    plt.imshow(img, cmap='gray')
+
+    plt.subplot(4, 3, 11)
+    plt.axis('off')
+    plt.title('高斯低通图像')
+    img_back = GaussianLowPassFilter(img, 20, s1)
+    plt.imshow(img_back, cmap='gray')
+
+    plt.subplot(4, 3, 12)
+    plt.axis('off')
+    plt.title('高斯高通图像')
+    img_back = GaussianHighPassFilter(img, 15, s1)
     plt.imshow(img_back, cmap='gray')
 
     # plt.savefig('2.new.jpg')
